@@ -19,6 +19,7 @@ export default function App() {
   const [page, setPage] = useState<number>(1);
   const searchMovie = (value: string): void => {
     setSearch(value);
+    setPage(1);
   };
   const { data, error, isLoading, isError } = useQuery({
     queryKey: [search, page],
