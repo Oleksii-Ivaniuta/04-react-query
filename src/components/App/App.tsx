@@ -8,20 +8,23 @@ import SearchBar from "../SearchBar/SearchBar";
 import css from "./App.module.css";
 import type { Movie } from "../../types/movie";
 import toast, { Toaster } from "react-hot-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useEffect } from "react";
+import ReactPaginate from "react-paginate";
 
 export default function App() {
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>("");
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [page, setPage] = useState<number>(1);
   const searchMovie = (value: string): void => {
     setSearch(value);
   };
   const { data, error, isLoading, isError } = useQuery({
-    queryKey: [search],
-    queryFn: () => fetchMovies(search),
-    enabled: search !== '',
+    queryKey: [search, page],
+    queryFn: () => fetchMovies(search, page),
+    enabled: search !== "",
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
@@ -44,6 +47,19 @@ export default function App() {
     <div className={css.app}>
       <Toaster position="top-center" reverseOrder={false} />
       <SearchBar onSubmit={searchMovie} />
+      {data && data.total_pages > 1 && (
+        <ReactPaginate
+          pageCount={data.total_pages}
+          pageRangeDisplayed={5}
+          marginPagesDisplayed={1}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+          forcePage={page - 1}
+          containerClassName={css.pagination}
+          activeClassName={css.active}
+          nextLabel="→"
+          previousLabel="←"
+        />
+      )}
       {data && (
         <MovieGrid movies={data.results as Movie[]} onSelect={selectMovie} />
       )}
