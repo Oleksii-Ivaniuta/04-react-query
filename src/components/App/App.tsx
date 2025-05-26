@@ -21,8 +21,8 @@ export default function App() {
     setSearch(value);
     setPage(1);
   };
-  const { data, error, isLoading, isError } = useQuery({
-    queryKey: [search, page],
+  const { data, error, isPending, isError, isSuccess } = useQuery({
+    queryKey: ['movies', search, page],
     queryFn: () => fetchMovies(search, page),
     enabled: search !== "",
     placeholderData: keepPreviousData,
@@ -48,7 +48,9 @@ export default function App() {
     <div className={css.app}>
       <Toaster position="top-center" reverseOrder={false} />
       <SearchBar onSubmit={searchMovie} />
-      {data && data.total_pages > 1 && (
+      {isError && error instanceof Error && <ErrorMessage error={error} />}
+      {search !== '' && isPending && <Loader />}
+      {isSuccess && data.total_pages > 1 && (
         <ReactPaginate
           pageCount={data.total_pages}
           pageRangeDisplayed={5}
@@ -61,12 +63,11 @@ export default function App() {
           previousLabel="←"
         />
       )}
-      {data && (
+      {isSuccess && data.results.length > 0 && (
         <MovieGrid movies={data.results as Movie[]} onSelect={selectMovie} />
       )}
       {modalOpen && <MovieModal movie={selectedMovie} onClose={closeModal} />}
-      {isError && <ErrorMessage error={error} />}
-      {isLoading && <Loader />}
+
     </div>
   );
 }
